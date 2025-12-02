@@ -36,3 +36,5 @@ coverage.xml
 # Home Assistant configuration
 config/*
 config/configuration.yaml
+/.vs
+.ha_run.lock

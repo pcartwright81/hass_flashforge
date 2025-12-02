@@ -33,7 +33,6 @@ async def async_setup_entry(
         config_entry.entry_id
     ]
 
-    printer_network = coordinator.printer.network
     async_add_entities(
         [
             PrinterButton(
@@ -41,28 +40,28 @@ async def async_setup_entry(
                 icon="mdi:stop",
                 coordinator=coordinator,
                 hass=hass,
-                action=printer_network.sendAbortRequest,
+                action=coordinator.client.emergency_stop,
             ),
             PrinterButton(
                 name="continue",
                 icon="mdi:play",
                 hass=hass,
                 coordinator=coordinator,
-                action=printer_network.sendContinueRequest,
+                action=coordinator.client.resume_print,
             ),
             PrinterButton(
                 name="pause",
                 icon="mdi:pause",
                 hass=hass,
                 coordinator=coordinator,
-                action=printer_network.sendPauseRequest,
+                action=coordinator.client.pause_print,
             ),
             FilePrinterButton(
                 name="print_file",
                 icon="mdi:printer-3d-nozzle",
                 hass=hass,
                 coordinator=coordinator,
-                action=printer_network.sendPrintRequest,
+                action=coordinator.client.job_control.print_local_file,
             ),
         ]
     )

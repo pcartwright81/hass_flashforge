@@ -18,3 +18,24 @@ print_file:
       name: "file name"
       description: "Filename without /data/ prefix!"
       example: "Apos_PLA_14m16s.gcode"
+upload_file:
+  name: Upload file
+  description: Upload and optionally start printing a file.
+  fields:
+    file_path:
+      name: "file path"
+      description: "Full path to the local file to upload"
+      required: true
+      example: "/config/gcode/test_print.gcode"
+    start_print:
+      name: "start print"
+      description: "Whether to start printing after upload"
+      required: false
+      default: false
+      example: true
+    level_before_print:
+      name: "level before print"
+      description: "Whether to perform bed leveling before printing"
+      required: false
+      default: false
+      example: true

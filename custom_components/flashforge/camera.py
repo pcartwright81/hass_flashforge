@@ -16,6 +16,9 @@ from homeassistant.helpers.aiohttp_client import (
 from .const import DOMAIN
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from aiohttp import web
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -25,7 +28,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-def extract_image_from_mjpeg(stream):
+def extract_image_from_mjpeg(stream: Iterable[bytes]) -> bytes | None:
     """Take in a MJPEG stream object, return the jpg from it."""
     data = b""
 
@@ -42,7 +45,7 @@ def extract_image_from_mjpeg(stream):
             continue
 
         return data[jpg_start : jpg_end + 2]
-    return data
+    return None
 
 
 async def async_setup_entry(
@@ -54,7 +57,8 @@ async def async_setup_entry(
     coordinator: FlashForgeDataUpdateCoordinator = hass.data[DOMAIN][
         config_entry.entry_id
     ]
-    mjpeg_url = await coordinator.printer.network.getCameraStream()
+    # The camera stream URL is typically a fixed endpoint.
+    mjpeg_url = f"http://{coordinator.client.ip_address}:8080/?action=stream"
     async_add_entities([FlashForgeCamera(coordinator, mjpeg_url)])
 
 
@@ -96,7 +100,9 @@ class FlashForgeCamera(Camera):
             self._attr_is_streaming = False
             return None
 
-    async def handle_async_mjpeg_stream(self, request):
+    async def handle_async_mjpeg_stream(
+        self, request: web.Request
+    ) -> web.StreamResponse | None:
         """Generate an HTTP MJPEG stream from the camera."""
         if not self.available:
             self._attr_is_streaming = False
