@@ -70,6 +70,20 @@ async def async_setup_entry(
                 coordinator=coordinator,
                 action=coordinator.client.job_control.print_local_file,
             ),
+            PrinterButton(
+                name="home_rapid",
+                icon="mdi:home-lightning-bolt",
+                hass=hass,
+                coordinator=coordinator,
+                action=coordinator.client.control.home_axes_rapid,
+            ),
+            PrinterButton(
+                name="home_all",
+                icon="mdi:home",
+                hass=hass,
+                coordinator=coordinator,
+                action=coordinator.client.control.home_axes,
+            ),
         ]
     )
 

@@ -33,14 +33,21 @@ async def async_setup_entry(
     async_add_entities([FlashForgeThumbnailImage(coordinator)])
 
 
-class FlashForgeThumbnailImage(CoordinatorEntity, ImageEntity):
+class FlashForgeThumbnailImage(
+    CoordinatorEntity["FlashForgeDataUpdateCoordinator"], ImageEntity
+):
     """Print thumbnail image entity."""
 
     _attr_has_entity_name = True
 
     def __init__(self, coordinator: FlashForgeDataUpdateCoordinator) -> None:
         """Initialize thumbnail image."""
+        # Initialize ImageEntity first to set up access_tokens
+        ImageEntity.__init__(self, coordinator.hass)
+        # Then initialize CoordinatorEntity using super()
         super().__init__(coordinator)
+
+        self.coordinator: FlashForgeDataUpdateCoordinator = coordinator
         self._attr_unique_id = f"{coordinator.config_entry.unique_id}_thumbnail"
         self._attr_device_info = coordinator.device_info
         self._attr_name = "Print Thumbnail"

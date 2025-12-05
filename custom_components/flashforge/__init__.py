@@ -24,7 +24,13 @@ PLATFORMS = [
     Platform.BUTTON,
     Platform.LIGHT,
     Platform.FAN,
+    Platform.BINARY_SENSOR,
+    Platform.IMAGE,
+    Platform.CLIMATE,
+    Platform.NUMBER,
+    Platform.SWITCH,
 ]
+
 
 _LOGGER = logging.getLogger(__name__)
 
