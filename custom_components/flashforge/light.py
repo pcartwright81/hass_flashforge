@@ -17,6 +17,8 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+    from flashforge import FFMachineInfo
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -46,16 +48,18 @@ class FlashForgeLightEntity(
         self._attr_device_info = coordinator.device_info
         self._attr_name = "Light"
         self._attr_unique_id = f"{coordinator.config_entry.unique_id}_light"
-
+        info : FFMachineInfo | None = self.coordinator.data.get("info")
+        if info:
+            self._attr_is_on = info.lights_on
         self.supported_color_modes = {ColorMode.ONOFF}
         self.color_mode = ColorMode.ONOFF
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        endstop_status = self.coordinator.data.get("endstop_status")
-        if endstop_status:
-            self._attr_is_on = endstop_status.led_enabled
+        info : FFMachineInfo | None = self.coordinator.data.get("info")
+        if info:
+            self._attr_is_on = info.lights_on
         self.async_write_ha_state()
 
     async def async_turn_on(self) -> None:
