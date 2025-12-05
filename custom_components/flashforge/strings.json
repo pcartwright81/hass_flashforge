@@ -10,7 +10,7 @@
           "ip_addr": "[%key:common::config_flow::data::ip%]",
           "port": "[%key:common::config_flow::data::port%]"
         },
-        "description": "Enter IP and port-number for your Flashforge 3d Printer. Leave empty to auto discover printer."
+        "description": "Enter IP for your Flashforge 3d Printer. Leave empty to auto discover printer."
       },
       "auto_confirm": {
         "title": "Discovered Flashforge device.",

@@ -1,20 +1,131 @@
-pause:
-  name: Pause
-  description: Pause current print.
-continue_print:
-  name: Continue print
-  description: Continue current print.
-abort:
-  name: Abort
-  description: Abort current print.
-get_file_names:
-  name: Get file names
-  description: Get the files that stored in printer.
-print_file:
-  name: Print file
-  description: Print file stored in printer.
+pause_print:
+  name: Pause Print
+  description: Pauses the current print job
+  target:
+    entity:
+      integration: flashforge
+      domain: button
+
+resume_print:
+  name: Resume Print
+  description: Resumes a paused print job
+  target:
+    entity:
+      integration: flashforge
+      domain: button
+
+cancel_print:
+  name: Cancel Print
+  description: Cancels the current print job
+  target:
+    entity:
+      integration: flashforge
+      domain: button
+
+clear_platform:
+  name: Clear Platform
+  description: Clears the printer build platform
+  target:
+    entity:
+      integration: flashforge
+      domain: button
+
+start_print:
+  name: Start Print
+  description: Starts printing a file that is already on the printer
+  target:
+    entity:
+      integration: flashforge
+      domain: button
   fields:
     file_name:
-      name: "file name"
-      description: "Filename without /data/ prefix!"
-      example: "Apos_PLA_14m16s.gcode"
+      name: File Name
+      description: Name of the file on the printer to print
+      required: true
+      example: "model.gcode"
+      selector:
+        text:
+    leveling_before_print:
+      name: Level Before Print
+      description: Perform bed leveling before starting the print
+      required: false
+      default: false
+      selector:
+        boolean:
+
+upload_file:
+  name: Upload File
+  description: Uploads a G-code or 3MF file to the printer and optionally starts printing
+  target:
+    entity:
+      integration: flashforge
+      domain: button
+  fields:
+    file_path:
+      name: File Path
+      description: Local path to the G-code or 3MF file to upload
+      required: true
+      example: "/config/prints/model.gcode"
+      selector:
+        text:
+    start_print:
+      name: Start Print
+      description: Start printing immediately after upload
+      required: false
+      default: false
+      selector:
+        boolean:
+    leveling_before_print:
+      name: Level Before Print
+      description: Perform bed leveling before starting the print
+      required: false
+      default: false
+      selector:
+        boolean:
+
+set_bed_temperature:
+  name: Set Bed Temperature
+  description: Sets the target temperature for the heated bed
+  target:
+    entity:
+      integration: flashforge
+      domain: climate
+  fields:
+    temperature:
+      name: Temperature
+      description: Target temperature in degrees Celsius
+      required: true
+      example: 60
+      selector:
+        number:
+          min: 0
+          max: 120
+          unit_of_measurement: "°C"
+
+set_nozzle_temperature:
+  name: Set Nozzle Temperature
+  description: Sets the target temperature for the printer nozzle/extruder
+  target:
+    entity:
+      integration: flashforge
+      domain: climate
+  fields:
+    temperature:
+      name: Temperature
+      description: Target temperature in degrees Celsius
+      required: true
+      example: 200
+      selector:
+        number:
+          min: 0
+          max: 300
+          unit_of_measurement: "°C"
+    extruder:
+      name: Extruder
+      description: Extruder index (0 for single extruder, 0 or 1 for dual)
+      required: false
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 1

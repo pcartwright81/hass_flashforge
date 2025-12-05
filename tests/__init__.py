@@ -4,24 +4,27 @@ from typing import Any
 
 import pytest
 import voluptuous as vol
-from homeassistant.const import CONF_IP_ADDRESS, CONF_PORT
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_IP_ADDRESS
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.flashforge.const import CONF_SERIAL_NUMBER, DOMAIN
 
 
-def get_schema_default(schema: vol.Schema, key_name: str) -> Any:
+def get_schema_default(schema: dict, key_name: str) -> Any:
     """Return default value from a schema."""
     for schema_key in schema:
         if schema_key == key_name:
             if schema_key.default is not vol.UNDEFINED:
                 return schema_key.default()
-            raise AttributeError(f"{key_name} doesn't have a default.")
-    raise KeyError(f"{key_name} not in schema.")
+            msg = f"{key_name} doesn't have a default."
+            raise AttributeError(msg)
+    msg = f"{key_name} not in schema."
+    raise KeyError(msg)
 
 
-def get_schema_suggested(schema: vol.Schema, key_name: str) -> Any:
+def get_schema_suggested(schema: dict, key_name: str) -> Any:
     """Return suggested value from a schema."""
     for schema_key in schema:
         if schema_key == key_name:
@@ -30,14 +33,16 @@ def get_schema_suggested(schema: vol.Schema, key_name: str) -> Any:
                 and "suggested_value" in schema_key.description
             ):
                 return schema_key.description["suggested_value"]
-            raise AttributeError(f"{key_name} doesn't have a suggested value.")
-    raise KeyError(f"{key_name} not in schema.")
+            msg = f"{key_name} doesn't have a suggested value."
+            raise AttributeError(msg)
+    msg = f"{key_name} not in schema."
+    raise KeyError(msg)
 
 
 @pytest.mark.asyncio
 async def init_integration(
-    hass: HomeAssistant, skip_setup: bool = False
-) -> MockConfigEntry:
+    hass: HomeAssistant, *, skip_setup: bool = False
+) -> ConfigEntry:
     """Set up a Flashforge printer in Home Assistant."""
     entry = MockConfigEntry(
         title="Adventurer4",
@@ -45,7 +50,6 @@ async def init_integration(
         unique_id="SNADVA1234567",
         data={
             CONF_IP_ADDRESS: "127.0.0.1",
-            CONF_PORT: 8899,
             CONF_SERIAL_NUMBER: "SNADVA1234567",
         },
     )

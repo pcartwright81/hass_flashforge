@@ -4,6 +4,7 @@ DOMAIN = "flashforge"
 DEFAULT_NAME = "FlashForge"
 
 CONF_SERIAL_NUMBER = "serial_number"
+CONF_CHECK_CODE = "check_code"
 
 SCAN_INTERVAL = 30
 MAX_FAILED_UPDATES = 3

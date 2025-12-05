@@ -16,33 +16,39 @@ from homeassistant.helpers.aiohttp_client import (
 from .const import DOMAIN
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from aiohttp import web
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+    # Assuming FlashForgeDataUpdateCoordinator is imported from a local file
     from .data_update_coordinator import FlashForgeDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def extract_image_from_mjpeg(stream):
+def extract_image_from_mjpeg(stream: Iterable[bytes]) -> bytes | None:
     """Take in a MJPEG stream object, return the jpg from it."""
     data = b""
 
     for chunk in stream:
         data += chunk
+        # JPEG End-of-Image marker
         jpg_end = data.find(b"\xff\xd9")
 
         if jpg_end == -1:
             continue
 
+        # JPEG Start-of-Image marker
         jpg_start = data.find(b"\xff\xd8")
 
         if jpg_start == -1:
             continue
 
         return data[jpg_start : jpg_end + 2]
-    return data
+    return None
 
 
 async def async_setup_entry(
@@ -54,41 +60,51 @@ async def async_setup_entry(
     coordinator: FlashForgeDataUpdateCoordinator = hass.data[DOMAIN][
         config_entry.entry_id
     ]
-    mjpeg_url = await coordinator.printer.network.getCameraStream()
-    async_add_entities([FlashForgeCamera(coordinator, mjpeg_url)])
+    async_add_entities([FlashForgeCamera(coordinator)])
 
 
 class FlashForgeCamera(Camera):
     """FlashForge camera object."""
 
-    def __init__(
-        self, coordinator: FlashForgeDataUpdateCoordinator, mjpeg_url: str
-    ) -> None:
+    def __init__(self, coordinator: FlashForgeDataUpdateCoordinator) -> None:
         """Initialize."""
         super().__init__()
-        self._mjpeg_url = mjpeg_url
         self.coordinator = coordinator
 
-        self._device_id = coordinator.config_entry.unique_id
         self._attr_device_info = coordinator.device_info
         self._attr_name = "Camera"
         self._attr_unique_id = f"{coordinator.config_entry.unique_id}_camera"
         self._attr_is_streaming = True
 
+    @property
+    def _mjpeg_url(self) -> str | None:
+        """Dynamically retrieve the camera stream URL from the nested FFMachineInfo."""
+        printer_info = self.coordinator.data.get("info")
+
+        if printer_info:
+            return printer_info.camera_stream_url
+
+        return None
+
     def camera_image(
-        self, width: int | None = None, height: int | None = None
+        self,
+        width: int | None = None,  # noqa: ARG002
+        height: int | None = None,  # noqa: ARG002
     ) -> bytes | None:
         """Return a still image response from the camera."""
-        if not self.available:
+        mjpeg_url = self._mjpeg_url
+
+        if not self.available or not mjpeg_url:
             self._attr_is_streaming = False
             _LOGGER.warning(
-                "Unable to get still image when %s camera is offline",
-                self.name,
+                "Still image unavailable for %s camera: offline or URL not set",
+                self._attr_name,
             )
             return None
 
         try:
-            req = requests.get(self._mjpeg_url, stream=True, timeout=10)
+            # Use the dynamically fetched URL
+            req = requests.get(mjpeg_url, stream=True, timeout=10)
 
             with closing(req) as response:
                 return extract_image_from_mjpeg(response.iter_content(102400))
@@ -96,23 +112,29 @@ class FlashForgeCamera(Camera):
             self._attr_is_streaming = False
             return None
 
-    async def handle_async_mjpeg_stream(self, request):
+    async def handle_async_mjpeg_stream(
+        self, request: web.Request
+    ) -> web.StreamResponse | None:
         """Generate an HTTP MJPEG stream from the camera."""
-        if not self.available:
+        mjpeg_url = self._mjpeg_url
+
+        if not self.available or not mjpeg_url:
             self._attr_is_streaming = False
             _LOGGER.warning(
-                "Attempt to stream when %s camera is offline",
-                self.name,
+                "Live stream unavailable for %s camera: offline or URL not set",
+                self._attr_name,
             )
             return None
 
         # connect to stream
         websession = async_get_clientsession(self.hass)
-        stream_coro = websession.get(self._mjpeg_url)
+        # Use the dynamically fetched URL
+        stream_coro = websession.get(mjpeg_url)
 
         return await async_aiohttp_proxy_web(self.hass, request, stream_coro)
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return self.coordinator.last_update_success
+        # The stream is only available if we have a URL and the coordinator is updated
+        return self.coordinator.last_update_success and self._mjpeg_url is not None
