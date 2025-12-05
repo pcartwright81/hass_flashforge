@@ -1,18 +1,15 @@
 {
   "domain": "flashforge",
-  "name": "Flashforge",
+  "name": "FlashForge",
   "codeowners": [
-    "@joseffallman"
+    "@pcartwright81"
   ],
   "config_flow": true,
-  "dependencies": [
-    "network"
-  ],
-  "documentation": "https://github.com/joseffallman/hass_flashforge",
+  "documentation": "https://github.com/pcartwright81/hass_flashforge",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/joseffallman/hass_flashforge/issues",
+  "issue_tracker": "https://github.com/pcartwright81/hass_flashforge/issues",
   "requirements": [
-    "flashforge-python-api==1.0.0"
+    "flashforge-python-api>=0.1.0"
   ],
-  "version": "v0.2.1"
+  "version": "1.0.0"
 }

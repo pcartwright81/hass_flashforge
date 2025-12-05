@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from flashforge import FlashForgeClient
+from flashforge import FlashForgeClient, JobControl, TempControl
 
 from .const import DEFAULT_NAME, DOMAIN, MAX_FAILED_UPDATES, SCAN_INTERVAL
 
@@ -103,3 +103,13 @@ class FlashForgeDataUpdateCoordinator(DataUpdateCoordinator):
             serial_number=sn,
             hw_version=mac,
         )
+    @property
+    def job_control(self) -> JobControl:
+        """Return job control instance."""
+        return self.client.job_control
+
+
+    @property
+    def temp_control(self) -> TempControl:
+        """Return temperature control instance."""
+        return self.client.temp_control
